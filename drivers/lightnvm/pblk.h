@@ -86,7 +86,6 @@ enum {
 };
 
 struct pblk_sec_meta {
-	u64 reserved;
 	__le64 lba;
 };
 
@@ -102,9 +101,6 @@ enum {
 	PBLK_RL_MID = 3,
 	PBLK_RL_LOW = 4
 };
-
-#define pblk_dma_meta_size (sizeof(struct pblk_sec_meta) * NVM_MAX_VLBA)
-#define pblk_dma_ppa_size (sizeof(u64) * NVM_MAX_VLBA)
 
 /* write buffer completion context */
 struct pblk_c_ctx {
@@ -637,6 +633,10 @@ struct pblk {
 
 	int sec_per_write;
 
+	int dma_meta_size;
+	int dma_ppa_size;
+	bool dma_shared;
+
 	unsigned char instance_uuid[16];
 
 	/* Persistent write amplification counters, 4kb sector I/Os */
@@ -982,6 +982,16 @@ static inline void *emeta_to_lbas(struct pblk *pblk, struct line_emeta *emeta)
 static inline void *emeta_to_vsc(struct pblk *pblk, struct line_emeta *emeta)
 {
 	return (emeta_to_lbas(pblk, emeta) + pblk->lm.emeta_len[2]);
+}
+
+static inline struct pblk_sec_meta *sec_meta_index(struct pblk *pblk,
+						   struct pblk_sec_meta *meta,
+						   int index)
+{
+	struct nvm_tgt_dev *dev = pblk->dev;
+	struct nvm_geo *geo = &dev->geo;
+
+	return ((void *)meta + index * geo->sos);
 }
 
 static inline int pblk_line_vsc(struct pblk_line *line)
