@@ -1469,7 +1469,7 @@ static void pblk_line_close_meta_sync(struct pblk *pblk)
 }
 
 void pblk_start_snapshot(struct pblk *pblk){
-	printk("OK");
+	printk("KOK");
 }
 
 void __pblk_pipeline_flush(struct pblk *pblk)
